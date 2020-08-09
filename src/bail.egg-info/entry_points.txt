@@ -1,0 +1,3 @@
+[console_scripts]
+bail = bail.console:main
+

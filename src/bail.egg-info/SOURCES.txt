@@ -1,0 +1,9 @@
+setup.py
+src/bail/__init__.py
+src/bail/console.py
+src/bail.egg-info/PKG-INFO
+src/bail.egg-info/SOURCES.txt
+src/bail.egg-info/dependency_links.txt
+src/bail.egg-info/entry_points.txt
+src/bail.egg-info/requires.txt
+src/bail.egg-info/top_level.txt

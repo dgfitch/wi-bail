@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: bail
+Version: 0.1.0
+Summary: Determine bail numbers by semi-automating the WCCA site
+Home-page: UNKNOWN
+Author: Dan Fitch
+Author-email: dgfitch@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.7,<4.0

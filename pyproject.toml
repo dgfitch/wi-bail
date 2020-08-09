@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "bail"
+version = "0.1.0"
+description = "Determine bail numbers by semi-automating the WCCA site"
+authors = ["Dan Fitch <dgfitch@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.24.0"
+selenium = "^3.141.0"
+geckodriver-autoinstaller = "^0.1.0"
+click = "^7.1.2"
+ipython = "^7.17.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+bail = "bail.console:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
