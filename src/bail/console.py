@@ -11,16 +11,17 @@ def main():
     """Scrape the WCCA site."""
     d = BailDriver()
 
-    case = "2019CF001487"
+    # Dane
     county_number = 13
 
     path = f"./cases/{county_number}"
     os.makedirs(path, exist_ok=True)
 
-    deets = d.case_details(case, county_number=county_number)
-    click.echo(deets)
-    with open(f'{path}/{case}.json', 'w') as f:
-        json.dump(deets, f)
+    cases = d.cases_for_month(county_number)
+    for case in cases:
+        deets = d.case_details(case, county_number=county_number)
+        with open(f'{path}/{case}.json', 'w') as f:
+            json.dump(deets, f)
 
     # For easier debugging maybe
     self = d

@@ -1,5 +1,6 @@
 import time
 import itertools
+import re
 from datetime import date, timedelta
 
 import click
@@ -26,7 +27,7 @@ class BailDriver:
         charges = table.find_elements_by_tag_name("tr")
 
         # First row is the header
-        charges.pop()
+        charges = charges[1:]
 
         for charge in charges:
             details = charge.find_elements_by_tag_name("td")
@@ -44,17 +45,35 @@ class BailDriver:
                     'disposition': disposition
                 }
 
+    def get_citations(self):
+        header = self.driver.find_element_by_xpath(f'//h4[text()="Charges"]')
+        citations = header.parent.find_elements_by_class_name("citation")
+
+        for citation in citations:
+            yield {
+                'bond_amount': self.get_dd_in(citation, "Bond amount"),
+                'violation_date': self.get_dd_in(citation, "Violation date"),
+                'mph_over': self.get_dd_in(citation, "MPH over"),
+                'charge_description': self.get_dd_in(citation, "Charge description"),
+                'severity': self.get_dd_in(citation, "Severity"),
+                'ordinance_or_statute': self.get_dd_in(citation, "Ordinance or statute"),
+                'statute': self.get_dd_in(citation, "Statute")
+            }
+
+    def get_dd_in(self, thing, dt):
+        """Given an element and the definition title, find the following value"""
+        try:
+            dd = thing.find_element_by_xpath(f'//dt[text()="{dt}"]/following-sibling::dd')
+            return dd.text
+        except NoSuchElementException:
+            return None
+
     def get_dd(self, dt):
         """Given the definition title, find the following value"""
-        # TODO: error trapping in here if we don't find this element?
-        # Right now the outer loop captures
-        click.echo("Looking for " + dt)
-        dd = self.driver.find_element_by_xpath(f'//dt[text()="{dt}"]/following-sibling::dd')
-        return dd.text
+        return self.get_dd_in(self.driver, dt)
 
     def get_race(self):
         """Look up race, which is different than above because the dt has a info icon in a span in it"""
-        click.echo("Looking for Race")
         dd = self.driver.find_element_by_xpath(f'//dt/span/following::dd')
         return dd.text
 
@@ -62,49 +81,65 @@ class BailDriver:
         return self.driver.find_elements_by_xpath(f"//*[contains(text(), '{string}')]")
 
     def get_bail(self, string):
-        """Look up bail"""
-        click.echo(f"Looking for bail info using '{string}'")
         elements = self.get_matching_text(string)
-        return len(elements) > 0
+        dollaz = re.compile(r"\$[0-9.,]+")
+        if len(elements) > 0:
+            recent = elements[0]
+            # First look in this row
+            row = recent.find_element_by_xpath('./ancestor::tr')
+            bail_details = row.text 
+            match = dollaz.search(bail_details)
+            if match:
+                return match.group()
+
+            # Otherwise look in the row after, which may be the "additional text"
+            bail_details = recent.find_element_by_xpath('./ancestor::tr/following-sibling::tr').text 
+            match = dollaz.search(bail_details)
+            if match:
+                return match.group()
+
+        return None
 
     def case_details(self, case_number, county_number):
         url = f"https://wcca.wicourts.gov/caseDetail.html?caseNo={case_number}&countyNo={county_number}&mode=details"
         self.driver.get(url)
 
-        trying = True
-        click.echo(f"Case loaded, trying to fetch...")
-        while trying:
-            try:
-                defendant_dob = self.get_dd("Defendant date of birth")
-                address = self.get_dd("Address")
-                da_number = self.get_dd("DA case number")
-                case_type = self.get_dd("Case type")
-                filing_date = self.get_dd("Filing date")
-                sex = self.get_dd("Sex")
-                race = self.get_race()
-                charges = list(self.get_charges())
-                signature_bond = self.get_bail("Signature bond set")
-                cash_bond = self.get_bail("Cash bond set")
-                # TODO: Cash value
+        click.echo(f"Case {case_number} in county {county_number} loaded, trying to fetch...")
 
-                # TODO: Most "recent" bail value?
-                # https://wcca.wicourts.gov/caseDetail.html?caseNo=2020CF001514&countyNo=13&mode=details
-                # "DE requesting $100 total cash bond. State requesting $400 total cash bond." But the final thing is what the Ct. set
+        # TODO: Look for "case not found" messages
+        not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'That case does not exist')]")
+        if len(not_found) > 0:
+            return None
 
-                # TODO: For traffic, pull out "Bond amount" dd if it exists
-                # ex: https://wcca.wicourts.gov/caseDetail.html?caseNo=2020TR004755&countyNo=13&mode=details
+        # First, check for captcha
+        find_captcha = self.driver.find_elements_by_id("rc-imageselect")
+        if len(find_captcha) > 0:
+            click.confirm('Suspected captcha, continue?')
 
-                trying = False
+        # If no captcha found, look for "view case details" button
+        # (on page with disclaimer that the case is not complete)
+        view_details = self.driver.find_elements_by_xpath("//a[@class='button'][contains(text(), 'View case details')]")
+        if len(view_details) > 0:
+            view_details[0].click()
+            time.sleep(1)
 
-            except NoSuchElementException:
-                find_captcha = self.driver.find_elements_by_id("rc-imageselect")
-                if len(find_captcha) > 0:
-                    click.confirm('Suspected captcha, continue?')
-                else:
-                    click.echo(f"Element not found, waiting...")
-                    time.sleep(5)
-            except:
-                raise
+        defendant_dob = self.get_dd("Defendant date of birth")
+        address = self.get_dd("Address")
+        da_number = self.get_dd("DA case number")
+        case_type = self.get_dd("Case type")
+        filing_date = self.get_dd("Filing date")
+        sex = self.get_dd("Sex")
+        race = self.get_race()
+        citations = []
+        charges = []
+        signature_bond = None
+        cash_bond = None
+        if case_type == "Traffic Forfeiture":
+            citations = list(self.get_citations())
+        else:
+            charges = list(self.get_charges())
+            signature_bond = self.get_bail("Signature bond set")
+            cash_bond = self.get_bail("Cash bond set")
 
         return {
             'defendant_dob': defendant_dob,
@@ -116,6 +151,7 @@ class BailDriver:
             'signature_bond': signature_bond,
             'cash_bond': cash_bond,
             'charges': charges,
+            'citations': citations,
         }
 
     def date_format(self, date):
