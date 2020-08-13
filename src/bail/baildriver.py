@@ -60,22 +60,25 @@ class BailDriver:
                 'statute': self.get_dd_in(citation, "Statute")
             }
 
-    def get_dd_in(self, thing, dt):
+    def get_dd_in(self, thing, dt_text):
         """Given an element and the definition title, find the following value"""
         try:
-            dd = thing.find_element_by_xpath(f'//dt[text()="{dt}"]/following-sibling::dd')
+            dd = thing.find_element_by_xpath(f'//dt[text()="{dt_text}"]/following-sibling::dd')
             return dd.text
         except NoSuchElementException:
             return None
 
-    def get_dd(self, dt):
+    def get_dd(self, dt_text):
         """Given the definition title, find the following value"""
-        return self.get_dd_in(self.driver, dt)
+        return self.get_dd_in(self.driver, dt_text)
 
     def get_race(self):
         """Look up race, which is different than above because the dt has a info icon in a span in it"""
-        dd = self.driver.find_element_by_xpath(f'//dt/span/following::dd')
-        return dd.text
+        try:
+            dd = self.driver.find_element_by_xpath(f'//dt/span/following::dd')
+            return dd.text
+        except NoSuchElementException:
+            return None
 
     def get_matching_text(self, string):
         return self.driver.find_elements_by_xpath(f"//*[contains(text(), '{string}')]")
@@ -105,16 +108,18 @@ class BailDriver:
         self.driver.get(url)
 
         click.echo(f"Case {case_number} in county {county_number} loaded, trying to fetch...")
+        time.sleep(2)
 
-        # TODO: Look for "case not found" messages
+        # Look for "case not found" messages
         not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'That case does not exist')]")
         if len(not_found) > 0:
             return None
 
         # First, check for captcha
-        find_captcha = self.driver.find_elements_by_id("rc-imageselect")
+        find_captcha = self.driver.find_elements_by_xpath("//iframe[@title='recaptcha challenge']")
         if len(find_captcha) > 0:
-            click.confirm('Suspected captcha, continue?')
+            if find_captcha[0].is_displayed():
+                click.confirm('Suspected captcha, continue?')
 
         # If no captcha found, look for "view case details" button
         # (on page with disclaimer that the case is not complete)
@@ -129,19 +134,25 @@ class BailDriver:
         case_type = self.get_dd("Case type")
         filing_date = self.get_dd("Filing date")
         sex = self.get_dd("Sex")
+        # Fetching race is broken again
         race = self.get_race()
         citations = []
         charges = []
         signature_bond = None
         cash_bond = None
-        if case_type == "Traffic Forfeiture":
+        if case_type == "Small Claims":
+            click.echo(f"Small claims")
+        elif case_type == "Traffic Forfeiture":
+            click.echo(f"Traffic")
             citations = list(self.get_citations())
         else:
+            click.echo(case_type)
             charges = list(self.get_charges())
             signature_bond = self.get_bail("Signature bond set")
             cash_bond = self.get_bail("Cash bond set")
 
         return {
+            'url': url,
             'defendant_dob': defendant_dob,
             'address': address,
             'da_number': da_number,
