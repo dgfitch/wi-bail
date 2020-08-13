@@ -117,11 +117,6 @@ class BailDriver:
         click.echo(f"Case {case_number} in county {county_number} loaded, trying to fetch...")
         time.sleep(2)
 
-        # Look for "case not found" messages
-        not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'That case does not exist')]")
-        if len(not_found) > 0:
-            return None
-
         # First, check for captcha
         find_captcha = self.driver.find_elements_by_xpath("//iframe[@title='recaptcha challenge']")
         if len(find_captcha) > 0:
@@ -135,6 +130,13 @@ class BailDriver:
             view_details[0].click()
             time.sleep(1)
 
+        # Look for "case not found" messages
+        not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'That case does not exist')]")
+        if len(not_found) > 0:
+            click.echo(f"Case {case_number} in county {county_number} not found")
+            return None
+
+
         defendant_dob = self.get_dd("Defendant date of birth")
         address = self.get_dd("Address")
         da_number = self.get_dd("DA case number")
@@ -147,8 +149,8 @@ class BailDriver:
         charges = []
         signature_bond = None
         cash_bond = None
-        if case_type == "Family":
-            click.echo(f"Family")
+        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity":
+            click.echo(case_type)
         if case_type == "Small Claims":
             click.echo(f"Small claims")
         elif case_type == "Traffic Forfeiture":

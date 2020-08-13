@@ -1,6 +1,7 @@
 import click
 import json
 import os
+import sys
 
 from . import __version__
 from .baildriver import *
@@ -47,13 +48,14 @@ def scrape():
         cases = d.cases_for_year(county_number)
         for case in cases:
             case_json = f'{path}/{case}.json'
-            if os.path.exists(path):
+            if os.path.exists(case_json):
                 click.echo(f"Case {case} in {county_number} already downloaded")
             else:
                 deets = d.case_details(case, county_number)
                 with open(case_json, 'w') as f:
                     json.dump(deets, f)
     except:
+        ex = sys.exc_info()
         # Debug any issues because this is so slow
         self = d
         from IPython import embed; embed()
