@@ -24,9 +24,8 @@ def console():
     county_number = 13
     case = "2020CM001458"
 
-    deets = d.case_details(case, county_number=county_number)
+    deets = d.case_details(case, county_number)
 
-    # For easier debugging maybe
     self = d
     from IPython import embed; embed()
 
@@ -43,10 +42,16 @@ def scrape():
     os.makedirs(path, exist_ok=True)
 
     click.echo("Loading unique cases")
-    cases = d.cases_for_month(county_number)
-    for case in cases:
-        deets = d.case_details(case, county_number=county_number)
-        with open(f'{path}/{case}.json', 'w') as f:
-            json.dump(deets, f)
+
+    try:
+        cases = d.cases_for_year(county_number)
+        for case in cases:
+            deets = d.case_details(case, county_number)
+            with open(f'{path}/{case}.json', 'w') as f:
+                json.dump(deets, f)
+    except:
+        # Debug any issues because this is so slow
+        self = d
+        from IPython import embed; embed()
 
     d.close()
