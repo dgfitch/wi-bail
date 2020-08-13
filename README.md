@@ -16,6 +16,12 @@ When you see:
 
 You just need to solve the captcha.
 
+### Possible problem cases
+
+(assume Dane County for now)
+
+2020JO000026
+
 ### License
 
 [This project is released under the MIT license](LICENSE.md)

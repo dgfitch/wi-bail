@@ -46,9 +46,13 @@ def scrape():
     try:
         cases = d.cases_for_year(county_number)
         for case in cases:
-            deets = d.case_details(case, county_number)
-            with open(f'{path}/{case}.json', 'w') as f:
-                json.dump(deets, f)
+            case_json = f'{path}/{case}.json'
+            if os.path.exists(path):
+                click.echo(f"Case {case} in {county_number} already downloaded")
+            else:
+                deets = d.case_details(case, county_number)
+                with open(case_json, 'w') as f:
+                    json.dump(deets, f)
     except:
         # Debug any issues because this is so slow
         self = d

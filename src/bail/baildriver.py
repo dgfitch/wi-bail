@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 import click
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 import geckodriver_autoinstaller
 
 
@@ -105,7 +105,14 @@ class BailDriver:
 
     def case_details(self, case_number, county_number):
         url = f"https://wcca.wicourts.gov/caseDetail.html?caseNo={case_number}&countyNo={county_number}&mode=details"
-        self.driver.get(url)
+        loaded = False
+        while not loaded:
+            try:
+                self.driver.get(url)
+                loaded = True
+            except WebDriverException as e:
+                click.echo(f"Error {e} loading url {url}, retrying after 2 seconds...")
+                time.sleep(2)
 
         click.echo(f"Case {case_number} in county {county_number} loaded, trying to fetch...")
         time.sleep(2)
@@ -140,6 +147,8 @@ class BailDriver:
         charges = []
         signature_bond = None
         cash_bond = None
+        if case_type == "Family":
+            click.echo(f"Family")
         if case_type == "Small Claims":
             click.echo(f"Small claims")
         elif case_type == "Traffic Forfeiture":
@@ -172,7 +181,14 @@ class BailDriver:
         date1 = self.date_format(date - timedelta(days = 6))
         date2 = self.date_format(date)
         url = f"https://wcca.wicourts.gov/courtOfficialCalendarReport.html?countyNo={county_number}&dateRange.start={date1}&dateRange.end={date2}&isCourtCal=true"
-        self.driver.get(url)
+        loaded = False
+        while not loaded:
+            try:
+                self.driver.get(url)
+                loaded = True
+            except WebDriverException as e:
+                click.echo(f"Error {e} loading url {url}, retrying after 2 seconds...")
+                time.sleep(2)
 
         cases = self.driver.find_elements_by_class_name("case-link")
         return [c.text for c in cases]
