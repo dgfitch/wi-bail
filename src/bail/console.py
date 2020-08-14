@@ -2,6 +2,7 @@ import click
 import json
 import os
 import sys
+from pathlib import Path
 
 from . import __version__
 from .baildriver import *
@@ -52,10 +53,18 @@ def scrape():
                 click.echo(f"Case {case} in {county_number} already downloaded")
             else:
                 deets = d.case_details(case, county_number)
-                with open(case_json, 'w') as f:
-                    json.dump(deets, f)
+                if deets == None:
+                    # Track failures for now
+                    failure = f'{path}/{case}.failure'
+                    Path(failure).touch()
+                else:
+                    with open(case_json, 'w') as f:
+                        json.dump(deets, f)
     except:
         ex = sys.exc_info()
+        import traceback
+        print(traceback.format_exc())
+
         # Debug any issues because this is so slow
         self = d
         from IPython import embed; embed()

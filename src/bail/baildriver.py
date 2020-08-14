@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 import click
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException, UnexpectedAlertPresentException
 import geckodriver_autoinstaller
 
 
@@ -103,14 +103,14 @@ class BailDriver:
 
         return None
 
-    def case_details(self, case_number, county_number):
+    def case_details(self, case_number, county_number, depth=0):
         url = f"https://wcca.wicourts.gov/caseDetail.html?caseNo={case_number}&countyNo={county_number}&mode=details"
         loaded = False
         while not loaded:
             try:
                 self.driver.get(url)
                 loaded = True
-            except WebDriverException as e:
+            except (WebDriverException, UnexpectedAlertPresentException) as e:
                 click.echo(f"Error {e} loading url {url}, retrying after 2 seconds...")
                 time.sleep(2)
 
@@ -118,10 +118,22 @@ class BailDriver:
         time.sleep(2)
 
         # First, check for captcha
+        # Sometimes this is throwing a "failed to interpret value as array",
+        # but that might have been due to a stack overflow-ish repeat
         find_captcha = self.driver.find_elements_by_xpath("//iframe[@title='recaptcha challenge']")
         if len(find_captcha) > 0:
             if find_captcha[0].is_displayed():
                 click.confirm('Suspected captcha, continue?')
+
+        # Sometimes the CAPTCHA site doesn't load, so reload?
+        find_warning = self.driver.find_elements_by_xpath("//strong[contains(text(), 'What is CAPTCHA?')]")
+        if len(find_warning) > 0:
+            if depth <= 10:
+                click.echo("CAPTCHA didn't load right, retrying in 2 seconds...")
+                time.sleep(2)
+                return self.case_details(case_number, county_number, depth+1)
+            else
+                return None
 
         # If no captcha found, look for "view case details" button
         # (on page with disclaimer that the case is not complete)
@@ -149,7 +161,7 @@ class BailDriver:
         charges = []
         signature_bond = None
         cash_bond = None
-        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity":
+        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate":
             click.echo(case_type)
         if case_type == "Small Claims":
             click.echo(f"Small claims")
@@ -188,7 +200,7 @@ class BailDriver:
             try:
                 self.driver.get(url)
                 loaded = True
-            except WebDriverException as e:
+            except (WebDriverException, UnexpectedAlertPresentException) as e:
                 click.echo(f"Error {e} loading url {url}, retrying after 2 seconds...")
                 time.sleep(2)
 
@@ -202,9 +214,22 @@ class BailDriver:
             yield d
             d -= timedelta(days = 7)
 
+
+
     def cases_for_dates(self, county_number, dates):
-        cases = [self.calendar_cases(county_number, d) for d in dates]
-        # Flatten it out and limit to unique
+        # I'd like to do this as a comprehension but it throws
+        # too many random errors.
+        def generate_cases():
+            for d in dates:
+                try:
+                    yield self.calendar_cases(county_number, d) 
+                except (WebDriverException, UnexpectedAlertPresentException) as e:
+                    click.echo(f"Error {e} loading cases for {d}, retrying after 2 seconds...")
+                    time.sleep(2)
+
+        cases = generate_cases()
+
+        # Flatten out and limit to unique
         return set(itertools.chain.from_iterable(cases))
 
     def cases_for_month(self, county_number):
