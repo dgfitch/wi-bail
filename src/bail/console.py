@@ -46,7 +46,17 @@ def scrape():
     click.echo("Loading unique cases")
 
     try:
-        cases = d.cases_for_year(county_number)
+        cases_list = f'{path}/last_year.json'
+        if os.path.exists(cases_list):
+            click.echo(f"Loading cached case list for county {county_number}")
+            with open(cases_list) as f:
+                cases = json.load(f)
+        else:
+            click.echo(f"Scraping case list for county {county_number}")
+            cases = d.cases_for_year(county_number)
+            with open(cases_list, 'w') as f:
+                json.dump(cases, f)
+
         for case in cases:
             case_json = f'{path}/{case}.json'
             if os.path.exists(case_json):
