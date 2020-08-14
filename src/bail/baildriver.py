@@ -14,7 +14,7 @@ class BailDriver:
         geckodriver_autoinstaller.install()
 
         self.driver = webdriver.Firefox()
-        self.driver.implicitly_wait(10)
+        self.driver.implicitly_wait(2)
 
     def test(self):
         self.driver.get("http://www.python.org")
@@ -163,8 +163,6 @@ class BailDriver:
         cash_bond = None
         if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate":
             click.echo(case_type)
-        if case_type == "Small Claims":
-            click.echo(f"Small claims")
         elif case_type == "Traffic Forfeiture":
             click.echo(f"Traffic")
             citations = list(self.get_citations())
