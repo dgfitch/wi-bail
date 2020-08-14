@@ -115,7 +115,7 @@ class BailDriver:
                 time.sleep(2)
 
         click.echo(f"Case {case_number} in county {county_number} loaded, trying to fetch...")
-        time.sleep(2)
+        time.sleep(5)
 
         # First, check for captcha
         # Sometimes this is throwing a "failed to interpret value as array",
@@ -132,7 +132,7 @@ class BailDriver:
                 click.echo("CAPTCHA didn't load right, retrying in 2 seconds...")
                 time.sleep(2)
                 return self.case_details(case_number, county_number, depth+1)
-            else
+            else:
                 return None
 
         # If no captcha found, look for "view case details" button
