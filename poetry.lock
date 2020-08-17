@@ -160,6 +160,14 @@ version = "0.7.5"
 
 [[package]]
 category = "main"
+description = "Pony Object-Relational Mapper"
+name = "pony"
+optional = false
+python-versions = "*"
+version = "0.7.13"
+
+[[package]]
+category = "main"
 description = "Library for building powerful interactive command lines in Python"
 name = "prompt-toolkit"
 optional = false
@@ -261,7 +269,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "ddf2d4a3d536fae40d1258c8c04978adefbec46dc1cc023deed10d3337efd199"
+content-hash = "9078665a0d7523f321b01703444997da0ec1cee89fcb02c05bcf5fcd73c50951"
 lock-version = "1.0"
 python-versions = "^3.7"
 
@@ -325,6 +333,9 @@ pexpect = [
 pickleshare = [
     {file = "pickleshare-0.7.5-py2.py3-none-any.whl", hash = "sha256:9649af414d74d4df115d5d718f82acb59c9d418196b7b4290ed47a12ce62df56"},
     {file = "pickleshare-0.7.5.tar.gz", hash = "sha256:87683d47965c1da65cdacaf31c8441d12b8044cdec9aca500cd78fc2c683afca"},
+]
+pony = [
+    {file = "pony-0.7.13.tar.gz", hash = "sha256:8a9e7339fe7a5182566c83047dbae8053aa1cf458bff0f21f1ae1b106a210cbb"},
 ]
 prompt-toolkit = [
     {file = "prompt_toolkit-3.0.5-py3-none-any.whl", hash = "sha256:df7e9e63aea609b1da3a65641ceaf5bc7d05e0a04de5bd45d05dbeffbabf9e04"},

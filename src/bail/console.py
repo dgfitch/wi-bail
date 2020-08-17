@@ -6,6 +6,7 @@ from pathlib import Path
 
 from . import __version__
 from .baildriver import *
+from .db import DB
 
 @click.group(invoke_without_command=True)
 @click.version_option(version=__version__)
@@ -32,13 +33,18 @@ def console():
     from IPython import embed; embed()
 
 @main.command()
-def scrape():
+@click.option('--county-number', default=13, help='County number')
+def load(county_number):
+    """Load cases from scraped JSON into SQLite."""
+    db = DB()
+    db.load(county_number)
+
+@main.command()
+@click.option('--county-number', default=13, help='County number')
+def scrape(county_number):
     """Scrape the WCCA site."""
 
     d = BailDriver()
-
-    # Dane
-    county_number = 13
 
     path = f"./cases/{county_number}"
     os.makedirs(path, exist_ok=True)
