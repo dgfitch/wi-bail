@@ -36,8 +36,11 @@ You just need to solve the captcha, type `y` and hit Enter.
 ### Possible problem cases
 
 null result:
+    cases/13/2020JO000026
+    cases/13/2020ME000321
 
-    cases/13/2020JO000026.json
+strange result:
+    cases/13/2020CM000756
 
 
 ## Sqlite loading

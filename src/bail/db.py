@@ -13,13 +13,14 @@ db = Database()
 class Case(db.Entity):
     case_number = Required(str)
     county_number = Required(int)
-    da_number = Optional(str)
+    da_number = Optional(str, nullable=True)
     case_type = Required(str)
-    url = Optional(str)
+    url = Optional(str, nullable=True)
     defendant_dob = Optional(date)
     filing_date = Optional(date)
-    address = Optional(str)
-    sex = Optional(str)
+    address = Optional(str, nullable=True)
+    sex = Optional(str, nullable=True)
+    race = Optional(str, nullable=True)
     signature_bond = Optional(float)
     cash_bond = Optional(float)
     charges = Set('Charge')
@@ -72,6 +73,7 @@ class DB():
                 filing_date=self.to_date(case['filing_date']),
                 address=case['address'],
                 sex=case['sex'],
+                race=case['race'],
                 signature_bond=self.to_float(case['signature_bond']),
                 cash_bond=self.to_float(case['cash_bond']),
             )
@@ -97,13 +99,19 @@ class DB():
                     disposition=c['disposition'],
                 )
 
+    @db_session
+    def cases_in_county(self, county_number):
+        return select(
+            c for c in Case
+            if c.county_number == int(county_number))
+
     def to_float(self, text):
-        if text == None:
+        if text == None or text.strip() == '':
             return None
         return float(text.replace("$", "").replace(",", ""))
 
     def to_date(self, text):
-        if text == None:
+        if text == None or text.strip() == '':
             return None
         if len(text) == 7:
             return datetime.strptime(text, "%m-%Y")

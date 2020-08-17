@@ -180,6 +180,7 @@ class BailDriver:
             'case_type': case_type,
             'filing_date': filing_date,
             'sex': sex,
+            'race': race,
             'signature_bond': signature_bond,
             'cash_bond': cash_bond,
             'charges': charges,

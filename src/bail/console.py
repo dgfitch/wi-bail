@@ -41,6 +41,14 @@ def load(county_number):
 
 @main.command()
 @click.option('--county-number', default=13, help='County number')
+def query(county_number):
+    """Query cases in SQLite."""
+    db = DB()
+    cases = db.cases_in_county(county_number)
+    from IPython import embed; embed() 
+
+@main.command()
+@click.option('--county-number', default=13, help='County number')
 def scrape(county_number):
     """Scrape the WCCA site."""
 
