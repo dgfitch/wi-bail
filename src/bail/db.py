@@ -50,8 +50,16 @@ class DB():
         db.bind(provider='sqlite', filename='wcca.sqlite', create_db=True)
         db.generate_mapping(create_tables=True)
 
+    def load(self):
+        """
+        Iterate over counties in path
+        """
+        for d in self.path.iterdir():
+            county_number = d.stem
+            self.load_county(county_number)
+
     @db_session
-    def load(self, county_number):
+    def load_county(self, county_number):
         """
         Iterate over counties in path
         """

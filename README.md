@@ -26,28 +26,36 @@ You just need to solve the captcha, type `y` and hit Enter.
 
 ### CAPTCHA notes
 
-* You will have to do a CAPTCHA at the first case, and then every 100 cases or so.
-* The case search listing does not seem to ever require one.
+* You will have to complete a CAPTCHA at the first case, and then every 100 cases or so.
+* The case search listing does not seem to require CAPTCHA.
 * On average, you will end up solving 3 to 5 CAPTCHAs per 100 cases, which is 
-  about 1 minute of work (mostly due to their artifical slow fade in.)
+  about 1 minute of work (mostly due to their artifical slow fade in.) For a 
+  year's worth of Dane County, that's about 50.
 * The face-blurring algorithm sometimes detects fire hydrant tops as human 
   faces.
 
 ### Possible problem cases
 
 null result:
+
     cases/13/2020JO000026
     cases/13/2020ME000321
 
 strange result:
+
     cases/13/2020CM000756
 
 
 ## Sqlite loading
 
-    poetry run bail load --county-number 13
+    poetry run bail load
 
-Still in progress, but this should get you a semi-formatted SQLite db.
+Still in progress, but this should get you a semi-formatted SQLite db from all 
+JSON files in `cases/`
+
+## Visualizations
+
+TODO
 
 ## License
 

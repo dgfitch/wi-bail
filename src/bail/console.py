@@ -33,11 +33,10 @@ def console():
     from IPython import embed; embed()
 
 @main.command()
-@click.option('--county-number', default=13, help='County number')
-def load(county_number):
+def load():
     """Load cases from scraped JSON into SQLite."""
     db = DB()
-    db.load(county_number)
+    db.load()
 
 @main.command()
 @click.option('--county-number', default=13, help='County number')
