@@ -161,7 +161,7 @@ class BailDriver:
         charges = []
         signature_bond = None
         cash_bond = None
-        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate" or case_type == "Civil":
+        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate" or case_type == "Civil" or case_type == "Transcript of Judgment" or case_type == "Commitment of an Inmate":
             click.echo(case_type)
         elif case_type == "Traffic Forfeiture":
             click.echo(f"Traffic")
