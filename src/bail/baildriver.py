@@ -96,10 +96,13 @@ class BailDriver:
                 return match.group()
 
             # Otherwise look in the row after, which may be the "additional text"
-            bail_details = recent.find_element_by_xpath('./ancestor::tr/following-sibling::tr').text 
-            match = dollaz.search(bail_details)
-            if match:
-                return match.group()
+            bail_details = recent.find_elements_by_xpath('./ancestor::tr/following-sibling::tr')
+            if bail_details:
+                match = dollaz.search(bail_details[0].text)
+                if match:
+                    return match.group()
+            else:
+                click.echo(f"Warning: could not find bail for {string}")
 
         return None
 
