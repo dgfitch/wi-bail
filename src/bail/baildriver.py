@@ -145,6 +145,12 @@ class BailDriver:
             view_details[0].click()
             time.sleep(1)
 
+        # Look for "case is sealed" messages
+        not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'This case is sealed')]")
+        if len(not_found) > 0:
+            click.echo(f"Case {case_number} in county {county_number} sealed")
+            return None
+
         # Look for "case not found" messages
         not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'That case does not exist')]")
         if len(not_found) > 0:
