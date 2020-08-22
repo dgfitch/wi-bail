@@ -3,3 +3,4 @@ __pycache__
 geckodriver.log
 cases
 *.sqlite
+.ipynb_checkpoints
