@@ -53,43 +53,47 @@ def scrape(county_number):
 
     d = BailDriver()
 
-    path = f"./cases/{county_number}"
-    os.makedirs(path, exist_ok=True)
+    def helper(county_number):
+        path = f"./cases/{county_number}"
+        os.makedirs(path, exist_ok=True)
 
-    click.echo("Loading unique cases")
+        click.echo(f"Scraping county {county_number}")
 
-    try:
-        cases_list = f'{path}/last_year.json'
-        if os.path.exists(cases_list):
-            click.echo(f"Loading cached case list for county {county_number}")
-            with open(cases_list) as f:
-                cases = json.load(f)
-        else:
-            click.echo(f"Scraping case list for county {county_number}")
-            cases = d.cases_for_year(county_number)
-            with open(cases_list, 'w') as f:
-                json.dump(list(cases), f)
-
-        for case in cases:
-            case_json = f'{path}/{case}.json'
-            if os.path.exists(case_json):
-                click.echo(f"Case {case} in {county_number} already downloaded")
+        try:
+            cases_list = f'{path}/last_year.json'
+            if os.path.exists(cases_list):
+                click.echo(f"Loading cached case list for county {county_number}")
+                with open(cases_list) as f:
+                    cases = json.load(f)
             else:
-                deets = d.case_details(case, county_number)
-                if deets == None:
-                    # Track failures for now
-                    failure = f'{path}/{case}.failure'
-                    Path(failure).touch()
-                else:
-                    with open(case_json, 'w') as f:
-                        json.dump(deets, f)
-    except:
-        ex = sys.exc_info()
-        import traceback
-        print(traceback.format_exc())
+                click.echo(f"Scraping case list for county {county_number}")
+                cases = d.cases_for_year(county_number)
+                with open(cases_list, 'w') as f:
+                    json.dump(list(cases), f)
 
-        # Debug any issues because this is so slow
-        self = d
-        from IPython import embed; embed()
+            for case in cases:
+                case_json = f'{path}/{case}.json'
+                if os.path.exists(case_json):
+                    click.echo(f"Case {case} in {county_number} already downloaded")
+                else:
+                    deets = d.case_details(case, county_number)
+                    if deets == None:
+                        # Track failures for now
+                        failure = f'{path}/{case}.failure'
+                        Path(failure).touch()
+                    else:
+                        with open(case_json, 'w') as f:
+                            json.dump(deets, f)
+        except:
+            ex = sys.exc_info()
+            import traceback
+            print(traceback.format_exc())
+
+            # Debug any issues interactively
+            self = d
+            from IPython import embed; embed()
+
+    for county in range(county_number, 72):
+        helper(county)
 
     d.close()
