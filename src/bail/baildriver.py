@@ -132,8 +132,8 @@ class BailDriver:
         find_warning = self.driver.find_elements_by_xpath("//strong[contains(text(), 'What is CAPTCHA?')]")
         if len(find_warning) > 0:
             if depth <= 10:
-                click.echo("CAPTCHA didn't load right, retrying in 2 seconds...")
-                time.sleep(2)
+                click.echo("CAPTCHA didn't load right, retrying in 10 seconds...")
+                time.sleep(10)
                 return self.case_details(case_number, county_number, depth+1)
             else:
                 return None

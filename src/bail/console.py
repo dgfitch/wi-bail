@@ -47,8 +47,9 @@ def query(county_number):
     from IPython import embed; embed() 
 
 @main.command()
-@click.option('--county-number', default=13, help='County number')
-def scrape(county_number):
+@click.option('--start', default=1, help='County number to start at')
+@click.option('--stop', default=72, help='County number to end at')
+def scrape(start, stop):
     """Scrape the WCCA site."""
 
     d = BailDriver()
@@ -58,6 +59,7 @@ def scrape(county_number):
         os.makedirs(path, exist_ok=True)
 
         click.echo(f"Scraping county {county_number}")
+        count = 0
 
         try:
             cases_list = f'{path}/last_year.json'
@@ -71,11 +73,15 @@ def scrape(county_number):
                 with open(cases_list, 'w') as f:
                     json.dump(list(cases), f)
 
+            county_case_total = len(cases)
             for case in cases:
                 case_json = f'{path}/{case}.json'
                 if os.path.exists(case_json):
                     click.echo(f"Case {case} in {county_number} already downloaded")
                 else:
+                    count += 1
+                    if count % 100 > 95:
+                        click.echo(f"At {count} of {county_case_total}, expecting captcha soon")
                     deets = d.case_details(case, county_number)
                     if deets == None:
                         # Track failures for now
@@ -93,7 +99,7 @@ def scrape(county_number):
             self = d
             from IPython import embed; embed()
 
-    for county in range(county_number, 72):
+    for county in range(start, stop):
         helper(county)
 
     d.close()
