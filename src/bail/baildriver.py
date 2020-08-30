@@ -14,7 +14,8 @@ class BailDriver:
         geckodriver_autoinstaller.install()
 
         self.driver = webdriver.Firefox()
-        self.driver.implicitly_wait(2)
+        # Don't do any implicit waiting now
+        self.driver.implicitly_wait(0)
 
     def test(self):
         self.driver.get("http://www.python.org")
@@ -133,7 +134,7 @@ class BailDriver:
         if len(find_warning) > 0:
             if depth <= 10:
                 click.echo("CAPTCHA didn't load right, retrying in 10 seconds...")
-                time.sleep(10)
+                time.sleep(5)
                 return self.case_details(case_number, county_number, depth+1)
             else:
                 return None
@@ -143,7 +144,7 @@ class BailDriver:
         view_details = self.driver.find_elements_by_xpath("//a[@class='button'][contains(text(), 'View case details')]")
         if len(view_details) > 0:
             view_details[0].click()
-            time.sleep(1)
+            time.sleep(2)
 
         # Look for "case is sealed" messages
         not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'This case is sealed')]")
@@ -169,7 +170,7 @@ class BailDriver:
         charges = []
         signature_bond = None
         cash_bond = None
-        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate" or case_type == "Civil" or case_type == "Transcript of Judgment" or case_type == "Commitment of an Inmate" or case_type == "Foreign Judgments":
+        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate" or case_type == "Civil" or case_type == "Transcript of Judgment" or case_type == "Commitment of an Inmate" or case_type == "Foreign Judgments" or case_type == "Informal Probate":
             click.echo(case_type)
         elif case_type == "Traffic Forfeiture":
             click.echo(f"Traffic")
@@ -209,7 +210,7 @@ class BailDriver:
                 loaded = True
             except (WebDriverException, UnexpectedAlertPresentException) as e:
                 click.echo(f"Error {e} loading url {url}, retrying after 2 seconds...")
-                time.sleep(2)
+            time.sleep(2)
 
         cases = self.driver.find_elements_by_class_name("case-link")
         return [c.text for c in cases]
