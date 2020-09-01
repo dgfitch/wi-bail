@@ -170,7 +170,11 @@ class BailDriver:
         charges = []
         signature_bond = None
         cash_bond = None
-        if case_type == "Family" or case_type == "Small Claims" or case_type == "Paternity" or case_type == "Probate" or case_type == "Civil" or case_type == "Transcript of Judgment" or case_type == "Commitment of an Inmate" or case_type == "Foreign Judgments" or case_type == "Informal Probate":
+        ignored_case_types = ["Family", "Small Claims", "Paternity", "Probate", "Civil", "Transcript of Judgment", "Commitment of an Inmate", "Foreign Judgments", "Informal Probate", "Construction Lien"]
+        if case_type == "":
+            click.echo("Could not find case type")
+            return None
+        elif case_type in ignored_case_types:
             click.echo(case_type)
         elif case_type == "Traffic Forfeiture":
             click.echo(f"Traffic")

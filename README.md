@@ -5,6 +5,8 @@ determine bail statistics.
 
 Scraping uses [geckodriver](https://github.com/mozilla/geckodriver) so you will need [Firefox](https://www.mozilla.org/en-US/firefox/new/). Should be fairly easy to change to a different `WebDriver` implementation.
 
+Visualizations mostly done in [Altair](https://altair-viz.github.io/).
+
 Built with [poetry](https://python-poetry.org/).
 
 ## Setup
@@ -50,12 +52,13 @@ strange result:
 
     poetry run bail load
 
-Still in progress, but this should get you a semi-formatted SQLite db from all 
-JSON files in `cases/`
+This gets you a semi-formatted SQLite db from all JSON files in `cases/`.
 
 ## Visualizations
 
-TODO
+    poetry run jupyter notebook
+
+Open the URL in your browser and find the "Bail Visualizations" notebook.
 
 ## License
 

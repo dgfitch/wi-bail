@@ -49,7 +49,8 @@ def query(county_number):
 @main.command()
 @click.option('--start', default=1, help='County number to start at')
 @click.option('--stop', default=72, help='County number to end at')
-def scrape(start, stop):
+@click.option('--force', default=False, help='Force retry failures')
+def scrape(start, stop, force):
     """Scrape the WCCA site."""
 
     d = BailDriver()
@@ -76,8 +77,11 @@ def scrape(start, stop):
             county_case_total = len(cases)
             for case in cases:
                 case_json = f'{path}/{case}.json'
+                failure_json = f'{path}/{case}.failure'
                 if os.path.exists(case_json):
                     click.echo(f"Case {case} in {county_number} already downloaded")
+                elif os.path.exists(failure_json) and not force:
+                    click.echo(f"Case {case} in {county_number} already failed (use --force to retry)")
                 else:
                     count += 1
                     if count % 100 > 95:
