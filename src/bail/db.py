@@ -43,6 +43,11 @@ class Citation(db.Entity):
     ordinance_or_statute = Optional(str)
     statute = Optional(str)
 
+class GeocodedAddress(db.Entity):
+    address = Required(str)
+    latitude = Required(float)
+    longitude = Required(float)
+
 
 class DB():
     def __init__(self):

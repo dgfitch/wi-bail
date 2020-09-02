@@ -7,6 +7,7 @@ from pathlib import Path
 from . import __version__
 from .baildriver import *
 from .db import DB
+from .geocode import Geocode
 
 @click.group(invoke_without_command=True)
 @click.version_option(version=__version__)
@@ -34,9 +35,27 @@ def console():
 
 @main.command()
 def load():
-    """Load cases from scraped JSON into SQLite."""
+    """
+    Load cases from scraped JSON into SQLite,
+    along with cached geocoded address information.
+    """
     db = DB()
     db.load()
+
+    gc = Geocode()
+    gc.load()
+
+@main.command()
+def geocode():
+    db = DB()
+    gc = Geocode()
+    gc.geocode()
+
+@main.command()
+def save():
+    db = DB()
+    gc = Geocode()
+    gc.save()
 
 @main.command()
 @click.option('--county-number', default=13, help='County number')

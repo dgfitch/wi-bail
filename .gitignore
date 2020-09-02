@@ -4,3 +4,4 @@ geckodriver.log
 cases
 *.sqlite
 .ipynb_checkpoints
+*.json
