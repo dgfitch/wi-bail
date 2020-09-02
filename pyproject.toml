@@ -13,11 +13,13 @@ click = "^7.1.2"
 pony = "^0.7.13"
 altair = "^4.1.0"
 geocoder = "^1.38.1"
+plotly = "^4.9.0"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"
 ipython = "^7.17.0"
 ipykernel = "^5.3.4"
+vega_datasets = "^0.8.0"
 
 [tool.poetry.scripts]
 bail = "bail.console:main"

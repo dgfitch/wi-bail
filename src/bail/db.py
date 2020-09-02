@@ -1,12 +1,11 @@
-import click
+from pony.orm import *
 import sqlite3
+import click
 import json
 import os
 import sys
 from pathlib import Path
 from datetime import date, datetime
-
-from pony.orm import *
 
 db = Database()
 
@@ -19,6 +18,10 @@ class Case(db.Entity):
     defendant_dob = Optional(date)
     filing_date = Optional(date)
     address = Optional(str, nullable=True)
+    latitude = Optional(float)
+    longitude = Optional(float)
+    fips = Optional(str, nullable=True)
+    county_name = Optional(str, nullable=True)
     sex = Optional(str, nullable=True)
     race = Optional(str, nullable=True)
     signature_bond = Optional(float)
@@ -42,11 +45,6 @@ class Citation(db.Entity):
     severity = Optional(str)
     ordinance_or_statute = Optional(str)
     statute = Optional(str)
-
-class GeocodedAddress(db.Entity):
-    address = Required(str)
-    latitude = Required(float)
-    longitude = Required(float)
 
 
 class DB():

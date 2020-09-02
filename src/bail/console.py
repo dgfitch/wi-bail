@@ -22,6 +22,7 @@ def console():
     """Testing console using IPython."""
     click.echo("Starting test console...")
     
+    """
     d = BailDriver()
 
     # Dane
@@ -31,6 +32,9 @@ def console():
     deets = d.case_details(case, county_number)
 
     self = d
+    """
+
+    db = DB()
     from IPython import embed; embed()
 
 @main.command()
@@ -42,19 +46,19 @@ def load():
     db = DB()
     db.load()
 
-    gc = Geocode()
+    gc = Geocode(db)
     gc.load()
 
 @main.command()
 def geocode():
     db = DB()
-    gc = Geocode()
+    gc = Geocode(db)
     gc.geocode()
 
 @main.command()
 def save():
     db = DB()
-    gc = Geocode()
+    gc = Geocode(db)
     gc.save()
 
 @main.command()
