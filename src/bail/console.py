@@ -40,23 +40,36 @@ def console():
 @main.command()
 def load():
     """
-    Load cases from scraped JSON into SQLite,
-    along with cached geocoded address information.
+    Load cases from scraped JSON into SQLite
     """
     db = DB()
     db.load()
 
+@main.command()
+def geocode_load():
+    """
+    Load geocoded addresses from cached JSON into SQLite
+    """
+    db = DB()
     gc = Geocode(db)
     gc.load()
 
 @main.command()
-def geocode():
+@click.option('--start', default=1, help='County number to start at')
+@click.option('--stop', default=72, help='County number to end at')
+def geocode(start, stop):
+    """
+    Attempt to geocode addresses missing lat/lon
+    """
     db = DB()
     gc = Geocode(db)
-    gc.geocode()
+    gc.geocode(start, stop)
 
 @main.command()
-def save():
+def geocode_save():
+    """
+    Dump geocoded addresses from SQLite into JSON
+    """
     db = DB()
     gc = Geocode(db)
     gc.save()

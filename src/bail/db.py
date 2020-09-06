@@ -68,7 +68,7 @@ class DB():
         """
         files = [x for x in self.path.glob(f"{county_number}/*.json")]
         for f in files:
-            if f.stem == "last_year":
+            if f.stem == "last_year" or len(f.stem) == 4:
                 continue
             click.echo(f"Importing case data from {f}")
             with open(f) as h:

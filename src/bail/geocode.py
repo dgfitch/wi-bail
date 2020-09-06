@@ -38,17 +38,22 @@ class Geocode():
         flush()
 
     @db_session
-    def geocode(self):
+    def geocode(self, start, stop):
         with requests.Session() as session:
-            for c in Case.select(lambda c: c.latitude == None and c.longitude == None).order_by(lambda c: c.id):
+            for c in Case.select(lambda c: c.latitude == None and c.longitude == None and c.address != None
+                    and c.county_number >= start and c.county_number <= stop).order_by(lambda c: c.id):
                 print(f"Checking {c.address}")
                 self.process(c, session)
         self.save()
 
     def load(self):
         reading = open("./geocode.json", "r") 
-        json.load(reading)
-        # TODO
+        cache = json.load(reading)
+        for a in cache:
+            for c in Case.select(lambda c: c.address.strip() == a["address"].strip()).order_by(lambda c: c.id):
+                c.latitude = a["latitude"]
+                c.longitude = a["longitude"]
+                print(f"Loaded lat/lon on case {c.id} for address {a}")
 
     def save(self):
         addresses = [{'address': c.address, 'longitude': c.longitude, 'latitude': c.latitude} for c in Case.select(c.latitude != None and longitude != None)]
