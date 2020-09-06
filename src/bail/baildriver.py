@@ -152,6 +152,13 @@ class BailDriver:
             click.echo(f"Case {case_number} in county {county_number} sealed")
             return None
 
+        # Look for "Case Sealed" messages
+        not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'Case Sealed')]")
+        if len(not_found) > 0:
+            click.echo(f"Case {case_number} in county {county_number} sealed")
+            return None
+
+
         # Look for "case not found" messages
         not_found = self.driver.find_elements_by_xpath("//h4[@class='unavailable'][contains(text(), 'That case does not exist')]")
         if len(not_found) > 0:
@@ -226,7 +233,13 @@ class BailDriver:
             yield d
             d -= timedelta(days = 7)
 
-
+    def weeks_for_year(self, year):
+        start = date(year, 1, 1)
+        last = date(year, 12, 31)
+        d = start
+        while d < last:
+            yield d
+            d += timedelta(days = 7)
 
     def cases_for_dates(self, county_number, dates):
         # I'd like to do this as a comprehension but it throws
@@ -244,15 +257,11 @@ class BailDriver:
         # Flatten out and limit to unique
         return set(itertools.chain.from_iterable(cases))
 
-    def cases_for_month(self, county_number):
-        four_weeks = itertools.islice(self.weeks_past_year(), 4)
-        return self.cases_for_dates(county_number, four_weeks)
+    def cases_for_year(self, county_number, year):
+        past_year = self.weeks_for_year(year)
+        return self.cases_for_dates(county_number, past_year)
 
-    def cases_for_week(self, county_number):
-        week = [next(self.weeks_past_year())]
-        return self.cases_for_dates(county_number, week)
-
-    def cases_for_year(self, county_number):
+    def cases_for_past_year(self, county_number):
         past_year = self.weeks_past_year()
         return self.cases_for_dates(county_number, past_year)
 

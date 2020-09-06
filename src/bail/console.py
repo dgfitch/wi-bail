@@ -72,8 +72,9 @@ def query(county_number):
 @main.command()
 @click.option('--start', default=1, help='County number to start at')
 @click.option('--stop', default=72, help='County number to end at')
+@click.option('--year', default=2019, help='Force retry failures')
 @click.option('--force', default=False, help='Force retry failures')
-def scrape(start, stop, force):
+def scrape(start, stop, year, force):
     """Scrape the WCCA site."""
 
     d = BailDriver()
@@ -86,14 +87,14 @@ def scrape(start, stop, force):
         count = 0
 
         try:
-            cases_list = f'{path}/last_year.json'
+            cases_list = f'{path}/{year}.json'
             if os.path.exists(cases_list):
                 click.echo(f"Loading cached case list for county {county_number}")
                 with open(cases_list) as f:
                     cases = json.load(f)
             else:
                 click.echo(f"Scraping case list for county {county_number}")
-                cases = d.cases_for_year(county_number)
+                cases = d.cases_for_year(county_number, year)
                 with open(cases_list, 'w') as f:
                     json.dump(list(cases), f)
 
@@ -126,7 +127,7 @@ def scrape(start, stop, force):
             self = d
             from IPython import embed; embed()
 
-    for county in range(start, stop):
+    for county in range(start, stop + 1):
         helper(county)
 
     d.close()

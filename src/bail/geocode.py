@@ -33,12 +33,15 @@ class Geocode():
                 x.latitude = g.latlng[0]
                 x.longitude = g.latlng[1]
                 print(f"{x.address}: {g.latlng}")
+            else:
+                print(str(g))
         flush()
 
     @db_session
     def geocode(self):
         with requests.Session() as session:
             for c in Case.select(lambda c: c.latitude == None and c.longitude == None).order_by(lambda c: c.id):
+                print(f"Checking {c.address}")
                 self.process(c, session)
         self.save()
 

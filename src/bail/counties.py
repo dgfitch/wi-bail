@@ -38,7 +38,6 @@ Counties = [
     "Marathon",
     "Marinette",
     "Marquette",
-    "Menominee",
     "Milwaukee",
     "Monroe",
     "Oconto",
@@ -71,6 +70,7 @@ Counties = [
     "Waushara",
     "Winnebago",
     "Wood",
+    "Menominee", # Yes, this is out of order for some reason
 ]
 
 FIPS = [
@@ -113,7 +113,6 @@ FIPS = [
     "55073",
     "55075",
     "55077",
-    "55078",
     "55079",
     "55081",
     "55083",
@@ -146,4 +145,5 @@ FIPS = [
     "55137",
     "55139",
     "55141",
+    "55078", # Menominee added
 ]
