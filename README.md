@@ -36,18 +36,6 @@ You just need to solve the captcha, type `y` and hit Enter.
 * The face-blurring algorithm sometimes detects fire hydrant tops as human 
   faces.
 
-### Possible problem cases
-
-null result:
-
-    cases/13/2020JO000026
-    cases/13/2020ME000321
-
-strange result:
-
-    cases/13/2020CM000756
-
-
 ## Sqlite loading
 
     poetry run bail load
