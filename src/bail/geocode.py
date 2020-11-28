@@ -32,7 +32,7 @@ class Geocode():
             if g.ok:
                 x.latitude = g.latlng[0]
                 x.longitude = g.latlng[1]
-                print(f"{x.address}: {g.latlng}")
+                print(g.latlng)
             else:
                 print(str(g))
         flush()
