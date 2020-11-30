@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import click
 import json
 import os
@@ -6,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .baildriver import *
+from .danecountyinmatesdriver import *
 from .db import DB
 from .geocode import Geocode
 
@@ -144,3 +146,12 @@ def scrape(start, stop, year, force):
         helper(county)
 
     d.close()
+
+@main.command()
+def scrape_inmates():
+    """
+    Scrape Dane County inmate database
+    """
+    d = DaneCountyInmatesDriver()
+    i = d.inmates()
+    print(i)

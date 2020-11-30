@@ -14,8 +14,20 @@ Built with [poetry](https://python-poetry.org/).
 Set up a [pyenv](https://github.com/pyenv/pyenv) of >=3.7 and then:
 
     pip install poetry
+    poetry install
 
-## Scraping
+## Scraping Dane County inmates
+
+In progress.
+
+    poetry run bail scrape-inmates
+
+## Scraping WCCA
+
+TODO: Need a mode that scrapes WCCA for only cases in the Dane County list
+
+To scrape a given county number (internal to WCCA, slightly out of 
+alphabetical order due to Actual Historical Reasons)
 
     poetry run bail scrape --county-number 13
 
