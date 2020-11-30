@@ -3,6 +3,7 @@ import click
 import json
 import os
 import sys
+import re
 from pathlib import Path
 
 from . import __version__
@@ -153,5 +154,22 @@ def scrape_inmates():
     Scrape Dane County inmate database
     """
     d = DaneCountyInmatesDriver()
-    i = d.inmates()
-    print(i)
+    inmates = d.inmates()
+    path = f"./inmates/13"
+    os.makedirs(path, exist_ok=True)
+
+    for url in inmates:
+        # The last digits are the "name number", whatever that means
+        name_number = re.search("\d+", url).group()
+        inmate_json = f'{path}/{name_number}.json'
+        failure_json = f'{path}/{name_number}.failure'
+        if os.path.exists(inmate_json):
+            click.echo(f"Inmate {inmate_json} already downloaded")
+        elif os.path.exists(failure_json) and not force:
+            click.echo(f"Inmate {failure_json} already failed (use --force to retry)")
+        else:
+            details = d.inmate_details(url)
+            with open(inmate_json, 'w') as f:
+                json.dump(details, f)
+
+    d.close()
