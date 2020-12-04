@@ -149,12 +149,18 @@ def scrape(start, stop, year, force):
     d.close()
 
 @main.command()
-def scrape_inmates():
+@click.option('--force', '-f', is_flag=True, help='Force downloads')
+@click.option('--example_url', default=None, help='Override loop and provide a single inmate URL')
+def scrape_inmates(example_url, force):
     """
     Scrape Dane County inmate database
     """
     d = DaneCountyInmatesDriver()
-    inmates = d.inmates()
+
+    if example_url:
+        inmates = [example_url]
+    else:
+        inmates = d.inmates()
     path = f"./inmates/13"
     os.makedirs(path, exist_ok=True)
 
@@ -163,7 +169,7 @@ def scrape_inmates():
         name_number = re.search("\d+", url).group()
         inmate_json = f'{path}/{name_number}.json'
         failure_json = f'{path}/{name_number}.failure'
-        if os.path.exists(inmate_json):
+        if os.path.exists(inmate_json) and not force:
             click.echo(f"Inmate {inmate_json} already downloaded")
         elif os.path.exists(failure_json) and not force:
             click.echo(f"Inmate {failure_json} already failed (use --force to retry)")

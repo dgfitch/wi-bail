@@ -45,15 +45,37 @@ class DaneCountyInmatesDriver:
 
         tables = self.driver.find_elements_by_xpath("//table")
         detail = tables[0]
-        arrest_info = tables[1]
+        arrest_info = tables[1:]
         cases = []
         case_urls = []
+        arrests = []
 
-        # TODO: Full arrest information rows, not just cases
-        # columns: Offense, Date/Time, Disposition Date, Court Case Number, Entry Code
-        for link in arrest_info.find_elements_by_xpath(".//a"):
-            cases.append(link.text)
-            case_urls.append(link.get_attribute('href'))
+        for arrest in arrest_info:
+            header = arrest.find_elements_by_xpath("./tbody/tr/td")
+            detail_rows = arrest.find_elements_by_xpath("./tbody//div//tr")[1:]
+            detail_cells = [row.find_elements_by_xpath(".//td") for row in detail_rows]
+            def find_url(e):
+                links = e.find_elements_by_xpath(".//a")
+                if links:
+                    return links[0].get_attribute('href')
+                return None
+
+            details = [{
+                'offense': d[0].text,
+                'date': d[1].text,
+                'disposition_date': d[2].text,
+                'court_case_number': d[3].text,
+                'court_case_url': find_url(d[3]),
+                'entry_code': d[4].text,
+                } for d in detail_cells]
+
+            arrests.append({
+                'date': header[0].text,
+                'agency': header[1].text,
+                'arrest_number': header[2].text,
+                'agency_case_number': header[3].text,
+                'details': details,
+                })
 
         return {
             'url': url,
@@ -65,8 +87,7 @@ class DaneCountyInmatesDriver:
             'booking_number': self.find_td(detail, "Booking Number"),
             'booking_date': self.find_td(detail, "Booking Date"),
             'name_number': self.find_td(detail, "Name Number"),
-            'cases': cases,
-            'cases': case_urls,
+            'arrests': arrests,
         }
 
     def inmates(self):
