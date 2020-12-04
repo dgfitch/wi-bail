@@ -41,9 +41,10 @@ class DaneCountyInmatesDriver:
             return None
 
     def inmate_details(self, url):
+        click.echo(f"Loading inmate details from {url}")
         self.load_url(url)
 
-        tables = self.driver.find_elements_by_xpath("//table")
+        tables = self.driver.find_elements_by_xpath('//div[contains(@class,"col-sm-12")]/table')
         detail = tables[0]
         arrest_info = tables[1:]
         cases = []

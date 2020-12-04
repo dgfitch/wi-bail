@@ -46,27 +46,62 @@ class Citation(db.Entity):
     ordinance_or_statute = Optional(str)
     statute = Optional(str)
 
+class Inmate(db.Entity):
+    county_number = Required(int)
+    name = Optional(str)
+    status = Optional(str)
+    building = Optional(str)
+    area = Optional(str)
+    scheduled_release = Optional(str)
+    booking_number = Optional(str)
+    booking_date = Optional(str)
+    name_number = Optional(str)
+    arrests = Set('Arrest')
+
+class Arrest(db.Entity):
+    inmate = Required('Inmate')
+    date = Optional(str)
+    agency = Optional(str)
+    arrest_number = Optional(str)
+    agency_case_number = Optional(str)
+    details = Set('ArrestDetail')
+
+class ArrestDetail(db.Entity):
+    arrest = Required('Arrest')
+    offense = Optional(str)
+    date = Optional(str)
+    disposition_date = Optional(str)
+    court_case_number = Optional(str)
+    court_case_url = Optional(str)
+    entry_code = Optional(str)
+
 
 class DB():
     def __init__(self):
-        self.path = Path("./cases")
+        self.cases_path = Path("./cases")
+        self.inmates_path = Path("./inmates")
         db.bind(provider='sqlite', filename='wcca.sqlite', create_db=True)
         db.generate_mapping(create_tables=True)
 
     def load(self):
         """
-        Iterate over counties in path
+        Iterate over counties in path and load them
+        And then iterate over inmates
         """
-        for d in self.path.iterdir():
+        for d in self.cases_path.iterdir():
             county_number = d.stem
             self.load_county(county_number)
+
+        for d in self.inmates_path.iterdir():
+            county_number = d.stem
+            self.load_inmates(county_number)
 
     @db_session
     def load_county(self, county_number):
         """
         Iterate over counties in path
         """
-        files = [x for x in self.path.glob(f"{county_number}/*.json")]
+        files = [x for x in self.cases_path.glob(f"{county_number}/*.json")]
         for f in files:
             if f.stem == "last_year" or len(f.stem) == 4:
                 continue
@@ -115,6 +150,49 @@ class DB():
         return select(
             c for c in Case
             if c.county_number == int(county_number))
+
+    @db_session
+    def load_inmates(self, county_number):
+        """
+        Iterate over inmates in path
+        """
+        files = [x for x in self.inmates_path.glob(f"{county_number}/*.json")]
+        for f in files:
+            click.echo(f"Importing inmate data from {f}")
+            with open(f) as h:
+                i = json.load(h)
+
+            inmate = Inmate(
+                    url=i['url'],
+                    name=i['name'],
+                    status=i['status'],
+                    building=i['building'],
+                    area=i['area'],
+                    scheduled_release=i['scheduled_release'],
+                    booking_number=i['booking_number'],
+                    booking_date=i['booking_date'],
+                    name_number=i['name_number'],
+                )
+            
+            for a in i['arrests']:
+                arrest = Arrest(
+                    inmate=inmate,
+                    date=a['date'],
+                    agency=a['agency'],
+                    arrest_number=a['arrest_number'],
+                    agency_case_number=a['agency_case_number'],
+                    )
+                for ad in a['details']:
+                    details = ArrestDetails(
+                        arrest=a,
+                        offense=ad['offense'],
+                        date=ad['date'],
+                        disposition_date=ad['disposition_date'],
+                        court_case_number=ad['court_case_number'],
+                        court_case_url=ad['court_case_url'],
+                        entry_code=ad['entry_code'],
+                        )
+
 
     def to_float(self, text):
         if text == None or text.strip() == '':
