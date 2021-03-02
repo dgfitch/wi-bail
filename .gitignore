@@ -3,6 +3,6 @@ __pycache__
 geckodriver.log
 cases
 inmates
-*.sqlite
+*.sqlite*
 .ipynb_checkpoints
 *.json

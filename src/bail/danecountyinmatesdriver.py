@@ -45,6 +45,8 @@ class DaneCountyInmatesDriver:
         self.load_url(url)
 
         tables = self.driver.find_elements_by_xpath('//div[contains(@class,"col-sm-12")]/table')
+        if len(tables) == 0:
+            return None
         detail = tables[0]
         arrest_info = tables[1:]
         cases = []

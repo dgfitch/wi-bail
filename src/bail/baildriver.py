@@ -182,12 +182,10 @@ class BailDriver:
             click.echo("Could not find case type")
             return None
         elif case_type in ignored_case_types:
-            click.echo(case_type)
+            click.echo("Ignored case: " + case_type)
         elif case_type == "Traffic Forfeiture":
-            click.echo(f"Traffic")
             citations = list(self.get_citations())
         else:
-            click.echo(case_type)
             charges = list(self.get_charges())
             signature_bond = self.get_bail("Signature bond set")
             cash_bond = self.get_bail("Cash bond set")

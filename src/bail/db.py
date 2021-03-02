@@ -48,7 +48,9 @@ class Citation(db.Entity):
 
 class Inmate(db.Entity):
     county_number = Required(int)
+    url = Optional(str)
     name = Optional(str)
+    race = Optional(str)
     status = Optional(str)
     building = Optional(str)
     area = Optional(str)
@@ -80,21 +82,27 @@ class DB():
     def __init__(self):
         self.cases_path = Path("./cases")
         self.inmates_path = Path("./inmates")
-        db.bind(provider='sqlite', filename='wcca.sqlite', create_db=True)
+        db.bind(provider='sqlite', filename='jail.sqlite', create_db=True)
         db.generate_mapping(create_tables=True)
 
-    def load(self):
+    def load_counties(self):
         """
         Iterate over counties in path and load them
-        And then iterate over inmates
         """
         for d in self.cases_path.iterdir():
             county_number = d.stem
             self.load_county(county_number)
 
+    def load_inmates(self):
+        """
+        Clear all arrests and inmates records, Iterate over inmates in path, and load them
+        """
+        Arrest.select().delete()
+        Inmate.select().delete()
+
         for d in self.inmates_path.iterdir():
             county_number = d.stem
-            self.load_inmates(county_number)
+            self.load_inmates_for_county(county_number)
 
     @db_session
     def load_county(self, county_number):
@@ -152,7 +160,7 @@ class DB():
             if c.county_number == int(county_number))
 
     @db_session
-    def load_inmates(self, county_number):
+    def load_inmates_for_county(self, county_number):
         """
         Iterate over inmates in path
         """
@@ -164,6 +172,7 @@ class DB():
 
             inmate = Inmate(
                     url=i['url'],
+                    county_number=county_number,
                     name=i['name'],
                     status=i['status'],
                     building=i['building'],
@@ -183,16 +192,15 @@ class DB():
                     agency_case_number=a['agency_case_number'],
                     )
                 for ad in a['details']:
-                    details = ArrestDetails(
-                        arrest=a,
+                    details = ArrestDetail(
+                        arrest=arrest,
                         offense=ad['offense'],
                         date=ad['date'],
                         disposition_date=ad['disposition_date'],
                         court_case_number=ad['court_case_number'],
-                        court_case_url=ad['court_case_url'],
+                        court_case_url=ad['court_case_url'] or '',
                         entry_code=ad['entry_code'],
                         )
-
 
     def to_float(self, text):
         if text == None or text.strip() == '':

@@ -29,7 +29,7 @@ TODO: Need a mode that scrapes WCCA for only cases in the Dane County list
 To scrape a given county number (internal to WCCA, slightly out of 
 alphabetical order due to Actual Historical Reasons)
 
-    poetry run bail scrape --county-number 13
+    poetry run bail scrape-wcca --county-number 13
 
 When you see:
 
@@ -50,9 +50,13 @@ You just need to solve the captcha, type `y` and hit Enter.
 
 ## Sqlite loading
 
-    poetry run bail load
+    poetry run bail load-counties
 
 This gets you a semi-formatted SQLite db from all JSON files in `cases/`.
+
+    poetry run bail load-inmates
+
+Same, loads in the inmates.
 
 ## Visualizations
 

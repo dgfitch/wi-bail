@@ -2,14 +2,16 @@
 import click
 import json
 import os
+from datetime import datetime, timedelta
 import sys
 import re
 from pathlib import Path
+from pony.orm import *
 
 from . import __version__
 from .baildriver import *
 from .danecountyinmatesdriver import *
-from .db import DB
+from .db import *
 from .geocode import Geocode
 
 @click.group(invoke_without_command=True)
@@ -25,28 +27,51 @@ def console():
     """Testing console using IPython."""
     click.echo("Starting test console...")
     
-    """
-    d = BailDriver()
-
-    # Dane
-    county_number = 13
-    case = "2020CM001458"
-
-    deets = d.case_details(case, county_number)
-
-    self = d
-    """
-
     db = DB()
     from IPython import embed; embed()
 
 @main.command()
-def load():
+def load_counties():
     """
     Load cases from scraped JSON into SQLite
     """
     db = DB()
-    db.load()
+    db.load_counties()
+
+@main.command()
+def load_inmates():
+    """
+    Load inmates from scraped JSON into SQLite
+    """
+    db = DB()
+    db.load_inmates()
+
+@main.command()
+def race_inmates():
+    """
+    Determine race of inmates in loaded database
+    using WCCA scraper
+    """
+    db = DB()
+    d = BailDriver()
+    with db_session:
+        for person in select(i for i in Inmate if not i.race):
+            if person.race:
+                continue
+            case_numbers = set(d.court_case_number for a in person.arrests for d in a.details if d.court_case_number)
+            for case in case_numbers:
+                # The sheriff site leaves off the first two digits of the year,
+                # which we need to reconstruct to look it up in WCCA.
+                # NOTE: This is a Y3K problem, lol
+                full_number = "20" + case
+                if case.startswith("99"):
+                    full_number = "19" + case
+                details = d.case_details("20" + case, 13)
+                if not details:
+                    continue
+                if "race" in details:
+                    person.race = details["race"]
+                    break
 
 @main.command()
 def geocode_load():
@@ -90,7 +115,7 @@ def query(county_number):
 @click.option('--stop', default=72, help='County number to end at')
 @click.option('--year', default=2019, help='Force retry failures')
 @click.option('--force', default=False, help='Force retry failures')
-def scrape(start, stop, year, force):
+def scrape_wcca(start, stop, year, force):
     """Scrape the WCCA site."""
 
     d = BailDriver()
@@ -164,18 +189,23 @@ def scrape_inmates(example_url, force):
     path = f"./inmates/13"
     os.makedirs(path, exist_ok=True)
 
+    long_ago = datetime.now() - timedelta(days=7)
+
     for url in inmates:
         # The last digits are the "name number", whatever that means
         name_number = re.search("\d+", url).group()
         inmate_json = f'{path}/{name_number}.json'
         failure_json = f'{path}/{name_number}.failure'
-        if os.path.exists(inmate_json) and not force:
-            click.echo(f"Inmate {inmate_json} already downloaded")
-        elif os.path.exists(failure_json) and not force:
+        if os.path.exists(failure_json) and not force:
             click.echo(f"Inmate {failure_json} already failed (use --force to retry)")
-        else:
+        elif not os.path.exists(inmate_json) or \
+            datetime.fromtimestamp(os.path.getmtime(inmate_json)) < long_ago:
             details = d.inmate_details(url)
-            with open(inmate_json, 'w') as f:
-                json.dump(details, f)
+            if details:
+                with open(inmate_json, 'w') as f:
+                    json.dump(details, f)
+            else:
+                click.echo(f"Inmate details failed at {url} (use --force to retry)")
+                Path(failure_json).touch()
 
     d.close()
