@@ -63,10 +63,11 @@ def race_inmates():
                 # The sheriff site leaves off the first two digits of the year,
                 # which we need to reconstruct to look it up in WCCA.
                 # NOTE: This is a Y3K problem, lol
-                full_number = "20" + case
-                if case.startswith("99"):
+                if case.startswith("9"):
                     full_number = "19" + case
-                details = d.case_details("20" + case, 13)
+                else:
+                    full_number = "20" + case
+                details = d.case_details(full_number, 13)
                 if not details:
                     continue
                 if "race" in details:
