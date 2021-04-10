@@ -62,6 +62,13 @@ class Inmate(db.Entity):
     arrests = Set('Arrest')
     cases = Set('Case')
 
+    def days_in_prison(self):
+        delta = datetime.now() - datetime.strptime(self.booking_date, "%m/%d/%Y %I:%M %p")
+        return delta.days
+
+    def case_numbers(self):
+        return set(d.court_case_number for a in self.arrests for d in a.details if d.court_case_number)
+
 class Arrest(db.Entity):
     inmate = Required('Inmate')
     date = Optional(str)

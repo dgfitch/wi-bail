@@ -1,3 +1,15 @@
+# Examples of how to query the data
+
+Once you have inmate data loaded (see [README](README.md),
+you can query and visualize in various ways.
+
+## Jupyter Notebook experimenting
+
+    cd notebooks
+    poetry run jupyter notebook
+
+## Pony querying
+
 Once you have inmate data loaded (see [README](README.md),
 you can run
 
@@ -22,6 +34,3 @@ And then do various queries like:
 
     len(black_pretrial_inmates)
     # 138
-
-    # Now the booking dates are strings, let's make a function that can return 
-    # how long they've been in jail
