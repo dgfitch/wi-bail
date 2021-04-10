@@ -18,13 +18,29 @@ Set up a [pyenv](https://github.com/pyenv/pyenv) of >=3.7 and then:
 
 ## Scraping Dane County inmates
 
-In progress.
+In progress. To get the inmates,
 
     poetry run bail scrape-inmates
 
-## Scraping WCCA
+To load them into the SQLite DB,
 
-TODO: Need a mode that scrapes WCCA for only cases in the Dane County list
+    poetry run bail load-inmates
+
+To use the below scraping WCCA stuff to find all case details and fill in 
+missing inmate details like race,
+
+    poetry run bail fill-inmates
+
+Now, after entering some CAPTCHAs and once again confirming your membership in 
+the human race, you can either look straight in the SQLite database with a 
+tool of your choice or query the data with the [Pony](https://ponyorm.org/)) 
+ORM by running:
+
+    poetry run bail query
+
+See the [EXAMPLES](EXAMPLES.md) file for some query samples.
+
+## Scraping WCCA
 
 To scrape a given county number (internal to WCCA, slightly out of 
 alphabetical order due to Actual Historical Reasons)
@@ -36,6 +52,10 @@ When you see:
     Suspected captcha, continue? [y/N]:
 
 You just need to solve the captcha, type `y` and hit Enter.
+
+Now you can load case data for any counties you downloaded:
+
+    poetry run bail load-counties
 
 
 ### CAPTCHA notes

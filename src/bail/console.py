@@ -47,32 +47,54 @@ def load_inmates():
     db.load_inmates()
 
 @main.command()
-def race_inmates():
+def fill_inmates():
     """
     Determine race of inmates in loaded database
-    using WCCA scraper
+    using WCCA scraper, along with other case info
     """
     db = DB()
     d = BailDriver()
+    found = []
+    not_found = []
     with db_session:
-        for person in select(i for i in Inmate if not i.race):
-            if person.race:
-                continue
+        for person in select(i for i in Inmate):
             case_numbers = set(d.court_case_number for a in person.arrests for d in a.details if d.court_case_number)
             for case in case_numbers:
                 # The sheriff site leaves off the first two digits of the year,
                 # which we need to reconstruct to look it up in WCCA.
                 # NOTE: This is a Y3K problem, lol
-                if case.startswith("9"):
+                if case.startswith("9") or case.startswith("8"):
                     full_number = "19" + case
                 else:
                     full_number = "20" + case
-                details = d.case_details(full_number, 13)
-                if not details:
-                    continue
-                if "race" in details:
-                    person.race = details["race"]
-                    break
+
+                # Try to find it in the DB
+                cases = list(select(
+                    c for c in Case
+                    if c.case_number == full_number))
+                if cases:
+                    case = cases[0]
+                else:
+                    details = d.case_details(full_number, 13)
+
+                    if not details:
+                        not_found.append(full_number)
+                        continue
+
+                    # Cache it to the JSON directory for later use
+                    case_json = f'./cases/13/{case}.json'
+                    with open(case_json, 'w') as f:
+                        json.dump(details, f)
+                    
+                    case = db.load_case(details, full_number, 13)
+
+                found.append(full_number)
+
+                case.inmate = person
+                if case.race and not person.race:
+                    person.race = case.race
+
+    click.echo(f"Found {len(found)} cases with {len(not_found)} not found in WCCA, likely older cases")
 
 @main.command()
 def geocode_load():

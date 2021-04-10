@@ -28,6 +28,7 @@ class Case(db.Entity):
     cash_bond = Optional(float)
     charges = Set('Charge')
     citations = Set('Citation')
+    inmate = Optional('Inmate')
 
 class Charge(db.Entity):
     case = Required('Case')
@@ -59,6 +60,7 @@ class Inmate(db.Entity):
     booking_date = Optional(str)
     name_number = Optional(str)
     arrests = Set('Arrest')
+    cases = Set('Case')
 
 class Arrest(db.Entity):
     inmate = Required('Inmate')
@@ -104,6 +106,45 @@ class DB():
             county_number = d.stem
             self.load_inmates_for_county(county_number)
 
+    def load_case(self, case, case_number, county_number):
+        n = Case(
+            case_number=case_number,
+            county_number=county_number,
+            da_number=case['da_number'],
+            case_type=case['case_type'],
+            url=case['url'],
+            defendant_dob=self.to_date(case['defendant_dob']),
+            filing_date=self.to_date(case['filing_date']),
+            address=case['address'],
+            sex=case['sex'],
+            race=case['race'],
+            signature_bond=self.to_float(case['signature_bond']),
+            cash_bond=self.to_float(case['cash_bond']),
+        )
+
+        for c in case['citations']:
+            citation = Citation(
+                case=n,
+                bond_amount=self.to_float(c['bond_amount']),
+                mph_over=c['mph_over'],
+                charge_description=c['charge_description'],
+                severity=c['severity'],
+                ordinance_or_statute=c['ordinance_or_statute'],
+                statute=c['statute'],
+            )
+
+        for c in case['charges']:
+            charge = Charge(
+                case=n,
+                count_number=c['count_number'],
+                statute=c['statute'],
+                description=c['description'],
+                severity=c['severity'],
+                disposition=c['disposition'],
+            )
+
+        return n
+
     @db_session
     def load_county(self, county_number):
         """
@@ -116,42 +157,7 @@ class DB():
             click.echo(f"Importing case data from {f}")
             with open(f) as h:
                 case = json.load(h)
-
-            n = Case(
-                case_number=f.stem,
-                county_number=county_number,
-                da_number=case['da_number'],
-                case_type=case['case_type'],
-                url=case['url'],
-                defendant_dob=self.to_date(case['defendant_dob']),
-                filing_date=self.to_date(case['filing_date']),
-                address=case['address'],
-                sex=case['sex'],
-                race=case['race'],
-                signature_bond=self.to_float(case['signature_bond']),
-                cash_bond=self.to_float(case['cash_bond']),
-            )
-
-            for c in case['citations']:
-                citation = Citation(
-                    case=n,
-                    bond_amount=self.to_float(c['bond_amount']),
-                    mph_over=c['mph_over'],
-                    charge_description=c['charge_description'],
-                    severity=c['severity'],
-                    ordinance_or_statute=c['ordinance_or_statute'],
-                    statute=c['statute'],
-                )
-
-            for c in case['charges']:
-                charge = Charge(
-                    case=n,
-                    count_number=c['count_number'],
-                    statute=c['statute'],
-                    description=c['description'],
-                    severity=c['severity'],
-                    disposition=c['disposition'],
-                )
+                self.load_case(case, f.stem, county_number)
 
     @db_session
     def cases_in_county(self, county_number):
