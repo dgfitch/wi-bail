@@ -62,8 +62,20 @@ class Inmate(db.Entity):
     arrests = Set('Arrest')
     cases = Set('Case')
 
-    def days_in_prison(self):
+    def days_since_booking(self):
         delta = datetime.now() - datetime.strptime(self.booking_date, "%m/%d/%Y %I:%M %p")
+        return delta.days
+
+    def most_recent_arrest(self):
+        def parse_arrest_date(d):
+            return datetime.strptime(d, "%m/%d/%Y %I:%M %p")
+
+        dates = set(parse_arrest_date(d.date)
+            for a in self.arrests for d in a.details if d.date)
+        return max(dates)
+
+    def days_since_most_recent_arrest(self):
+        delta = datetime.now() - self.most_recent_arrest()
         return delta.days
 
     def case_numbers(self):

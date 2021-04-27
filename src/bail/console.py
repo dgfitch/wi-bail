@@ -72,9 +72,21 @@ def fill_inmates():
                 cases = list(select(
                     c for c in Case
                     if c.case_number == full_number))
+
+                case_json = f'./cases/13/{case}.json'
                 if cases:
                     case = cases[0]
+                    click.echo(f"Found {case} in DB")
+                elif os.path.exists(case_json):
+                    # Load from cached JSON
+                    # TODO: add a time limit for modified, reload if > a week old or whatever
+                    click.echo(f"Loading {case} from cached JSON")
+                    with open(case_json) as h:
+                        details = json.load(h)
+                        case = db.load_case(details, full_number, 13)
+
                 else:
+                    # Load from WCCA
                     details = d.case_details(full_number, 13)
 
                     if not details:
@@ -82,7 +94,7 @@ def fill_inmates():
                         continue
 
                     # Cache it to the JSON directory for later use
-                    case_json = f'./cases/13/{case}.json'
+                    # TODO: centralize this, and the error stuff with a callback?
                     with open(case_json, 'w') as f:
                         json.dump(details, f)
                     

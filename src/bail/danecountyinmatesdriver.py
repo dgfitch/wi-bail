@@ -6,7 +6,7 @@ from datetime import date, timedelta
 import click
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import NoSuchElementException, WebDriverException, UnexpectedAlertPresentException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException, UnexpectedAlertPresentException, ElementClickInterceptedException
 import geckodriver_autoinstaller
 
 
@@ -98,7 +98,10 @@ class DaneCountyInmatesDriver:
         self.load_url(url)
         done = False
         inmate_urls = []
-        select = Select(self.driver.find_element_by_xpath('//select'))
+
+        # They changed it so some slow Javascript makes the select box show up
+        time.sleep(5)
+        select = Select(self.driver.find_element_by_xpath("//select"))
         select.select_by_value('100')
         iteration = 0
 
@@ -115,11 +118,17 @@ class DaneCountyInmatesDriver:
             # It would be too easy to use the web standards to enable or disable buttons
             # keep_going = next_button.is_enabled()
             # So we have to check class
+            # Disabling it is slower than it used to be
+            time.sleep(2)
             keep_going = "disabled" not in next_button.get_attribute("class")
             if keep_going:
-                next_button.click()
-                print(f"Loading next page...")
-                time.sleep(1)
+                try:
+                    print(f"Loading next page...")
+                    next_button.click()
+                    time.sleep(1)
+                except (WebDriverException, ElementClickInterceptedException) as e:
+                    print(f"Error clicking next, assuming we are done")
+                    done = True
             else:
                 print(f"Loading complete!")
                 done = True
